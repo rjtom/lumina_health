@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "date": "2026-06-13",
+    "resting_heart_rate_bpm": 62,
+    "hrv_ms": 48,
+    "sleep_hours": 7.2,
+    "steps": 8420,
+    "active_kcal": 450,
+    "exercise_minutes": 35
+  },
+  "history": [
+    {
+      "date": "2026-06-12",
+      "resting_heart_rate_bpm": 64,
+      "hrv_ms": 42,
+      "sleep_hours": 6.1,
+      "steps": 7100,
+      "active_kcal": 380,
+      "exercise_minutes": 20
+    },
+    {
+      "date": "2026-06-11",
+      "resting_heart_rate_bpm": 61,
+      "hrv_ms": 50,
+      "sleep_hours": 8.0,
+      "steps": 10500,
+      "active_kcal": 550,
+      "exercise_minutes": 45
+    },
+    {
+      "date": "2026-06-10",
+      "resting_heart_rate_bpm": 63,
+      "hrv_ms": 46,
+      "sleep_hours": 7.5,
+      "steps": 9200,
+      "active_kcal": 420,
+      "exercise_minutes": 30
+    }
+  ]
+}

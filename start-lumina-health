@@ -1,0 +1,30 @@
+#!/bin/bash
+# Script to start the Lumina Health Coach backend server
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_DIR"
+
+# Ensure we include parent directory in PYTHONPATH so imports like 'from lumina_health.agent import ...' work
+export PYTHONPATH="$(dirname "$PROJECT_DIR"):$PYTHONPATH"
+
+echo "=== Starting Lumina Health Coach Infrastructure ==="
+
+# Check if port 8001 is already in use
+if lsof -i :8001 >/dev/null 2>&1; then
+  echo "⚠️ Warning: Port 8001 is already in use. Server might already be running."
+else
+  echo "🚀 Starting FastAPI Server on port 8001..."
+  uv run uvicorn app:app --host 0.0.0.0 --port 8001 > server.log 2>&1 &
+  echo "   Server logs are writing to server.log"
+fi
+
+echo "⌛ Waiting for services to initialize..."
+sleep 3
+
+echo "=== Status ==="
+if lsof -i :8001 >/dev/null 2>&1; then
+  echo "✅ Lumina Health Coach is UP on http://localhost:8001"
+else
+  echo "❌ Lumina Health Coach FAILED to start. Check server.log"
+fi
+echo "=================================================="

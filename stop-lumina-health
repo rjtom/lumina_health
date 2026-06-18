@@ -1,0 +1,27 @@
+#!/bin/bash
+# Script to stop the Lumina Health Coach backend server
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_DIR"
+
+echo "=== Stopping Lumina Health Coach Infrastructure ==="
+
+# Stop FastAPI server on port 8001
+PID_8001=$(lsof -t -i :8001 2>/dev/null)
+if [ -n "$PID_8001" ]; then
+  echo "🛑 Stopping FastAPI Server (PID: $PID_8001)..."
+  kill $PID_8001
+  sleep 1
+  # Force kill if still alive
+  if kill -0 $PID_8001 2>/dev/null; then
+    echo "⚠️ Force-killing FastAPI Server..."
+    kill -9 $PID_8001
+  fi
+  echo "✅ Lumina Health Coach server stopped."
+else
+  echo "ℹ️ Lumina Health Coach server is not running on port 8001."
+fi
+
+echo "=== Infrastructure Cleaned ==="
+lsof -i :8001 2>/dev/null || echo "🎉 Service stopped successfully."
+echo "=================================================="

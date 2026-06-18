@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lumina Health - A safe, clinical-guideline grounded AI Health Coach. Never diagnoses or prescribes.">
+    <title>Lumina Health — AI Health Coach</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1><i class="fa-solid fa-heart-pulse"></i> LUMINA HEALTH</h1>
+                <p>Thoughtful, Grounded AI Health Coach & Companion</p>
+            </div>
+
+        </header>
+
+        <!-- Dashboard Layout -->
+        <div class="dashboard-layout">
+            <!-- Top Row: Metrics Overview -->
+            <div class="metrics-row">
+                <div class="metric-card steps-card">
+                    <div class="metric-icon"><i class="fa-solid fa-person-running"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Daily Steps</span>
+                        <span class="metric-value" id="val-steps">--</span>
+                    </div>
+                </div>
+                <div class="metric-card sleep-card">
+                    <div class="metric-icon"><i class="fa-solid fa-moon"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Sleep</span>
+                        <span class="metric-value" id="val-sleep">--</span>
+                    </div>
+                </div>
+                <div class="metric-card hrv-card">
+                    <div class="metric-icon"><i class="fa-solid fa-wave-square"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">HRV</span>
+                        <span class="metric-value" id="val-hrv">--</span>
+                    </div>
+                </div>
+                <div class="metric-card exercise-card">
+                    <div class="metric-icon"><i class="fa-solid fa-fire"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Active Time</span>
+                        <span class="metric-value" id="val-exercise">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Chat & Sidebar -->
+            <div class="main-grid">
+                <!-- Left: Chat Interface -->
+                <div class="chat-panel">
+                    <div class="chat-history" id="chat-history">
+                        <div class="message agent">
+                            <p><strong>Hello! I am Lumina Health, your AI Health Coach.</strong></p>
+                            <p>I can analyze your fitness tracker metrics (above), answer wellness questions based on clinical guidelines, and help you order approved health test kits.</p>
+                            <p><em>Please note: I strictly operate within medical boundaries. I cannot diagnose conditions, recommend treatments, or prescribe medications.</em></p>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <div class="input-wrapper">
+                            <input type="text" id="chat-input" class="chat-input" placeholder="Ask about sleep guidelines, analyze today's steps, or request a kit..." autocomplete="off">
+                            <button id="send-btn" class="send-btn">
+                                <span>Send</span>
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar: Custom Actions & Orders -->
+                <div class="sidebar-panel">
+                    <!-- Orders widget -->
+                    <div class="sidebar-card orders-card flex-grow">
+                        <h2><i class="fa-solid fa-microscope"></i> Ordered Test Kits</h2>
+                        <div class="orders-list" id="orders-list">
+                            <div class="empty-state" id="orders-empty">
+                                <i class="fa-solid fa-flask" style="font-size: 28px; opacity: 0.3; margin-bottom: 8px;"></i>
+                                <p>No test kits ordered yet.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suggestions widget -->
+                    <div class="sidebar-card suggestions-card">
+                        <h2><i class="fa-solid fa-stethoscope"></i> Test Coach & Safety</h2>
+                        <div class="suggestions-grid">
+                            <button class="suggestion-btn" onclick="sendSuggestion('Analyze my health metrics for today')">
+                                <i class="fa-solid fa-chart-line"></i> Analyze Today's Metrics
+                            </button>
+                            <button class="suggestion-btn" onclick="sendSuggestion('What are sleep guidelines according to clinical data?')">
+                                <i class="fa-solid fa-book-medical"></i> Check Sleep Guidelines
+                            </button>
+                            <button class="suggestion-btn" onclick="sendSuggestion('Order a Vitamin D test kit')">
+                                <i class="fa-solid fa-cart-shopping"></i> Order Vitamin D Kit
+                            </button>
+                            <button class="suggestion-btn" onclick="sendSuggestion('I have a severe headache, what illness do I have and what medicine should I take?')">
+                                <i class="fa-solid fa-shield-halved"></i> Test Medical Boundaries (Safety Check)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client-side script -->
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const ordersList = document.getElementById('orders-list');
+        const ordersEmpty = document.getElementById('orders-empty');
+
+        // Dynamic metrics elements
+        const valSteps = document.getElementById('val-steps');
+        const valSleep = document.getElementById('val-sleep');
+        const valHrv = document.getElementById('val-hrv');
+        const valExercise = document.getElementById('val-exercise');
+
+        // Initial fetch
+        fetchMetrics();
+        updateOrders();
+
+        sendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        function sendSuggestion(text) {
+            chatInput.value = text;
+            handleSend();
+        }
+
+        async function fetchMetrics() {
+            try {
+                const res = await fetch('/api/metrics');
+                if (res.ok) {
+                    const data = await res.json();
+                    const summary = data.metrics.summary;
+                    valSteps.textContent = summary.steps.toLocaleString() + ' steps';
+                    valSleep.textContent = summary.sleep_hours + ' hrs';
+                    valHrv.textContent = summary.hrv_ms + ' ms';
+                    valExercise.textContent = summary.exercise_minutes + ' mins';
+                }
+            } catch (err) {
+                console.error('Failed to load metrics:', err);
+            }
+        }
+
+        async function handleSend() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            chatInput.value = '';
+
+            appendMessage('user', text);
+            scrollToBottom();
+
+            const agentMsgDiv = appendMessage('agent', '');
+
+            // Thoughts container
+            const thoughtContainer = document.createElement('div');
+            thoughtContainer.className = 'thought-container';
+            thoughtContainer.style.display = 'none';
+            thoughtContainer.innerHTML = `
+                <div class="thought-header" onclick="toggleThought(this)">
+                    <span><i class="fa-solid fa-brain"></i> Coach Reasoning</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="thought-content"></div>
+            `;
+            agentMsgDiv.appendChild(thoughtContainer);
+
+            // Content container
+            const contentContainer = document.createElement('div');
+            contentContainer.className = 'agent-response-content';
+            contentContainer.innerHTML = `<div class="loading-dots"><span></span><span></span><span></span></div>`;
+            agentMsgDiv.appendChild(contentContainer);
+            scrollToBottom();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to reach server');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                let thoughtText = '';
+                let contentText = '';
+                let cleanedContent = false;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const rawData = line.slice(6).trim();
+                                if (!rawData) continue;
+                                const eventData = JSON.parse(rawData);
+
+                                if (eventData.type === 'thought') {
+                                    thoughtContainer.style.display = 'block';
+                                    const thoughtContent = thoughtContainer.querySelector('.thought-content');
+                                    thoughtText += eventData.content;
+                                    thoughtContent.textContent = thoughtText;
+                                } else if (eventData.type === 'content') {
+                                    if (!cleanedContent) {
+                                        contentContainer.innerHTML = '';
+                                        cleanedContent = true;
+                                    }
+                                    contentText += eventData.content;
+                                    contentContainer.innerHTML = formatMarkdown(contentText);
+                                } else if (eventData.type === 'orders_update') {
+                                    renderOrders(eventData.orders);
+                                } else if (eventData.type === 'error') {
+                                    contentContainer.innerHTML = `<span style="color: var(--accent-warning); font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> ${eventData.content}</span>`;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE event:', e);
+                            }
+                        }
+                    }
+                    scrollToBottom();
+                }
+
+                if (!cleanedContent) {
+                    contentContainer.innerHTML = '<em>Task complete.</em>';
+                }
+
+            } catch (error) {
+                console.error(error);
+                contentContainer.innerHTML = `<span style="color: var(--accent-warning); font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> Connection failed: ${error.message}</span>`;
+            }
+
+            updateOrders();
+            scrollToBottom();
+        }
+
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+            if (sender === 'user') {
+                msgDiv.textContent = text;
+            }
+            chatHistory.appendChild(msgDiv);
+            return msgDiv;
+        }
+
+        function toggleThought(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.className = 'fa-solid fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fa-solid fa-chevron-down';
+            }
+        }
+
+        function scrollToBottom() {
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        async function updateOrders() {
+            try {
+                const res = await fetch('/api/orders');
+                const data = await res.json();
+                renderOrders(data.orders);
+            } catch (err) {
+                console.error('Error fetching orders:', err);
+            }
+        }
+
+        function renderOrders(orders) {
+            if (!orders || orders.length === 0) {
+                ordersEmpty.style.display = 'flex';
+                const items = ordersList.querySelectorAll('.order-item');
+                items.forEach(el => el.remove());
+                return;
+            }
+
+            ordersEmpty.style.display = 'none';
+            const oldItems = ordersList.querySelectorAll('.order-item');
+            oldItems.forEach(el => el.remove());
+
+            orders.forEach(o => {
+                const div = document.createElement('div');
+                div.className = 'order-item';
+                div.innerHTML = `
+                    <div class="order-id">${o.order_id}</div>
+                    <div class="order-name">${o.kit_type} Kit</div>
+                    <div class="order-meta">
+                        <span>Provider: ${o.provider}</span>
+                        <span class="order-status">${o.status}</span>
+                    </div>
+                `;
+                ordersList.appendChild(div);
+            });
+        }
+
+        // Minimal markdown formatter
+        function formatMarkdown(text) {
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+                .replace(/## (.*?)\n/g, '<h2>$1</h2>')
+                .replace(/\n/g, '<br>');
+
+            // Bullet points
+            formatted = formatted.replace(/- (.*?)<br>/g, '<li>$1</li>');
+            formatted = formatted.replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>');
+            formatted = formatted.replace(/<\/ul><ul>/g, '');
+
+            return formatted;
+        }
+    </script>
+</body>
+</html>
