@@ -4,7 +4,7 @@ from typing import Dict, List, Any
 from google.antigravity import ToolContext
 
 # Database paths
-METRICS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "health_metrics.json"))
+METRICS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "health_metrics.json"))
 
 # Mock authoritative clinical guidelines
 GUIDELINES_DB = {
