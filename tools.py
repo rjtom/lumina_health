@@ -3,8 +3,30 @@ import json
 from typing import Dict, List, Any
 from google.antigravity import ToolContext
 
-# Database paths
-METRICS_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "health_metrics.json"))
+def _find_metrics_path() -> str:
+    # 1. Check same directory as tools.py
+    path_same = os.path.abspath(os.path.join(os.path.dirname(__file__), "health_metrics.json"))
+    if os.path.exists(path_same):
+        return path_same
+    # 2. Check parent directory of tools.py
+    path_parent = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "health_metrics.json"))
+    if os.path.exists(path_parent):
+        return path_parent
+    # 3. Check absolute fallback in /app
+    path_app = "/app/health_metrics.json"
+    if os.path.exists(path_app):
+        return path_app
+    # 4. Search upwards up to 4 directories
+    current_dir = os.path.dirname(__file__)
+    for _ in range(4):
+        candidate = os.path.join(current_dir, "health_metrics.json")
+        if os.path.exists(candidate):
+            return os.path.abspath(candidate)
+        current_dir = os.path.dirname(current_dir)
+    # Default fallback
+    return path_same
+
+METRICS_PATH = _find_metrics_path()
 
 # Mock authoritative clinical guidelines
 GUIDELINES_DB = {
