@@ -1,6 +1,6 @@
 # Lumina Health — Clinically-Grounded AI Health Coach
 
-[![Watch Health Coach Walkthrough](https://cdn.loom.com/sessions/thumbnails/b417dbfbe04f426da3fb769e9d872040-with-play.gif)](https://www.loom.com/share/b417dbfbe04f426da3fb769e9d872040)
+[![Watch Health Coach Walkthrough](https://cdn.loom.com/sessions/thumbnails/b417dbfbe04f426da3fb769e9d872040-72975c3fa542865f.gif)](https://www.loom.com/share/b417dbfbe04f426da3fb769e9d872040)
 
 Lumina Health is a thoughtful, secure, and clinically-grounded AI Health Coach and wellness companion built with the **Google Antigravity SDK** and powered by **Gemini 3.5 Flash**. 
 
